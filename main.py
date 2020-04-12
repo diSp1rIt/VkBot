@@ -13,7 +13,7 @@ def main():
         return
     vk = vk_session.get_api()
     # Используем метод wall.get
-    response = vk.wall.get(fields='date, text', owner_id=-130698013, count=100)
+    response = vk.wall.get(fields='date, text', count=100)
     if response['items']:
         for i in response['items']:
             print('{' + i['text'] + '};')
