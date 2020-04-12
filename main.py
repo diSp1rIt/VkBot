@@ -1,25 +1,28 @@
-import vk_api
 from config import *
+import vk_api
+from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
+import random
 
 
 def main():
-    login, password = LOGIN, PASSWORD
-    vk_session = vk_api.VkApi(login, password)
-    try:
-        vk_session.auth(token_only=True)
-    except vk_api.AuthError as error_msg:
-        print(error_msg)
-        return
+    vk_session = vk_api.VkApi(token=TOKEN)
+    longpoll = VkBotLongPoll(vk_session, 194113667)
     vk = vk_session.get_api()
-    response = vk.friends.get(fields='bdate')
-    if response['items']:
-        for i in sorted(response['items'], key=lambda x: x['last_name']):
-            print(i['last_name'], end=' ')
-            print(i['first_name'], end='')
-            if 'bdate' in i.keys():
-                print(f' {i["bdate"]}')
-            else:
-                print()
+    for event in longpoll.listen():
+        if event.type == VkBotEventType.MESSAGE_NEW:
+            print(event)
+            print('Новое сообщение:')
+            print('Для меня от:', event.obj.message['from_id'])
+            print('Текст:', event.obj.message['text'])
+            name = vk.users.get(user_ids=[event.obj.message["from_id"]])[0]['first_name']
+            vk.messages.send(user_id=event.obj.message['from_id'],
+                             message=f'Привет, {name}!',
+                             random_id=random.randint(0, 2 ** 64))
+            if 'id' in event.obj.message.keys():
+                city = vk.users.get(user_ids=[event.obj.message['from_id']], fields="city")[0]['city']['title']
+                vk.messages.send(user_id=event.obj.message['from_id'],
+                                 message=f'Как поживает {city}?',
+                                 random_id=random.randint(0, 2 ** 64))
 
 
 if __name__ == '__main__':
