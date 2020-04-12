@@ -1,5 +1,4 @@
 import vk_api
-from time import strftime, ctime, strptime
 from config import *
 
 
@@ -12,13 +11,15 @@ def main():
         print(error_msg)
         return
     vk = vk_session.get_api()
-    # Используем метод wall.get
-    response = vk.wall.get(fields='date, text', count=100)
+    response = vk.friends.get(fields='bdate')
     if response['items']:
-        for i in response['items']:
-            print('{' + i['text'] + '};')
-            print(strftime('date: {%Y-%m-%d}, time: {%X}', strptime(ctime(i['date']))))
-            print()
+        for i in sorted(response['items'], key=lambda x: x['last_name']):
+            print(i['last_name'], end=' ')
+            print(i['first_name'], end='')
+            if 'bdate' in i.keys():
+                print(f' {i["bdate"]}')
+            else:
+                print()
 
 
 if __name__ == '__main__':
